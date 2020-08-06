@@ -1,0 +1,29 @@
+service docker start
+docker-compose up -d
+docker-compose down
+docker exec -it devilbox_php_1 bash
+
+sudo php bin/magento setup:install --base-url=https://test.localip.dev/ \
+--db-host=127.0.0.1 --db-name=magento --db-user=root --db-password=1 \
+--admin-firstname=Magento --admin-lastname=User --admin-email=user@example.com \
+--admin-user=admin --admin-password=admin123 --language=en_US \
+--currency=USD --timezone=America/Chicago --use-rewrites=1
+
+bin/magento setup:uninstall
+
+php bin/magento setup:di:compile
+
+ /admin_1wkvnt
+/admin_18h6ch
+
+php bin/magento sampledata:deploy
+\\wsl\Ubuntu-18.04\home\haunguyen\workspace
+
+
+sudo php bin/magento setup:install --base-url=https://test.localip.dev/ \
+--db-host=127.0.0.1 --db-name=magento --db-user=root --db-password=1 \
+--admin-firstname=Magento --admin-lastname=User --admin-email=user@example.com \
+--admin-user=admin --admin-password=admin123 --language=en_US \
+--currency=USD --timezone=America/Chicago --use-rewrites=1 \
+--search-engine=elasticsearch7 --elasticsearch-host=elastic \
+--elasticsearch-port=9200
