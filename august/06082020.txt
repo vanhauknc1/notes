@@ -27,3 +27,15 @@ sudo php bin/magento setup:install --base-url=https://test.localip.dev/ \
 --currency=USD --timezone=America/Chicago --use-rewrites=1 \
 --search-engine=elasticsearch7 --elasticsearch-host=elastic \
 --elasticsearch-port=9200
+
+
+#workingwithm2haver
+
+https://i.imgur.com/VCLEX4Z.png
+
+
+
+* import database 
+ mysql -h mysql -u root -p m2haver_dev < m2haver_dev-06-30-2020-103239.sql
+ * uninstall magento 
+ bin/magento setup:uninstall
