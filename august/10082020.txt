@@ -1,0 +1,10 @@
+create user admin 
+php bin/magento admin:user:create --admin-user="admin" --admin-password="admin123" --admin-email="admin@example.com" --admin-firstname="Admin" --admin-lastname="Admin"
+
+
+sudo chmod -R 777 pub var
+
+php bin/magento setup:upgrade
+php bin/magento setup:di:compile
+php bin/magento cache:flush
+php bin/magento setup:static-content:deploy
