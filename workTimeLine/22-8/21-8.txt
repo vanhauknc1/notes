@@ -1,0 +1,19 @@
+1. Hôm qua làm gì
+2. hôm qua gặp khó khăn gì
+3. hôm qua đạt đc thành quả gì
+4. hôm nay làm gì
+
+yesterday i was 
+	deploy m2haver lên server
+	update database m1 to m2
+	media
+	resize image
+
+			
+* difficult :
+	+ 
+*Achievements :
+	+ 
+* today : 
+
+

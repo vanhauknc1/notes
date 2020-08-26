@@ -3,12 +3,14 @@ docker-compose up -d
 docker-compose down
 docker exec -it devilbox_php_1 bash
 
-sudo php bin/magento setup:install --base-url=https://test.localip.dev/ \
---db-host=127.0.0.1 --db-name=magento --db-user=root --db-password=1 \
+sudo rm -rf m2haver
+
+sudo php bin/magento setup:install --base-url=https://m2haver.localip.dev/ \
+--db-host=127.0.0.1 --db-name=m2haver_dev --db-user=root --db-password=1 \
 --admin-firstname=Magento --admin-lastname=User --admin-email=user@example.com \
 --admin-user=admin --admin-password=admin123 --language=en_US \
 --currency=USD --timezone=America/Chicago --use-rewrites=1
-
+php bin/magento sampledata:deploy
 bin/magento setup:uninstall
 
 php bin/magento setup:di:compile
@@ -16,7 +18,10 @@ php bin/magento setup:di:compile
  /admin_1wkvnt
 /admin_18h6ch
 
-php bin/magento sampledata:deploy
+sudo php bin/magento cache:clean
+sudo php bin/magento setup:upgrade
+php bin/magento setup:di:compile
+php bin/magento setup:static-content:deploy -f
 \\wsl\Ubuntu-18.04\home\haunguyen\workspace
 
 
@@ -36,6 +41,46 @@ https://i.imgur.com/VCLEX4Z.png
 
 
 * import database 
- mysql -h mysql -u root -p m2haver_dev < m2haver_dev-06-30-2020-103239.sql
+ mysql -h mysql -u root -p m2haver_dev < cleanhaversho_b2bparts-08-13-2020-023326.sql
  * uninstall magento 
  bin/magento setup:uninstall
+ 
+ 
+ 
+scp -r m2havertest:home/m2haver/backups/cleanhaversho_b2bparts-08-13-2020-023326.sql .
+rsync -avzh m2havertest:/home/m2haver/backups/cleanhaversho_b2bparts-08-13-2020-023326.sql .
+
+server to local
+rsync -avzh shop.haverusa.com:/home/havershop/shop.haverusa.com/shared/htdocs/media/resources .
+rsync -avzh m2havertest:/home/m2haver/m2haver.variux.com/shared/htdocs/pub/media .
+local to serve
+rsync -avzhe ssh media m2havertest:/home/m2haver/m2haver.variux.com/releases/20200821043606/htdocs/pub
+
+bin/magento migrate:settings -a app/code/Vendor/Migration/etc/opensource-to-opensource/1.9.4.4/config.xml
+bin/magento migrate:data -a app/code/Vendor/Migration/etc/opensource-to-opensource/1.9.4.4/config.xml
+bin/magento migrate:delta -a app/code/Vendor/Migration/etc/opensource-to-opensource/1.9.4.4/config.xml
+
+bin/magento indexer:reindex
+
+create user admin 
+php bin/magento admin:user:create --admin-user="admin" --admin-password="admin123" --admin-email="admin@example.com" --admin-firstname="Admin" --admin-lastname="Admin"
+php bin/magento admin:user:create --admin-user="haunguyen" --admin-password="Haunguyen123" --admin-email="admin@example.com" --admin-firstname="Admin" --admin-lastname="Admin"
+
+sudo chmod -R 777 pub var
+
+php bin/magento setup:upgrade
+php bin/magento setup:di:compile
+php bin/magento cache:flush
+php bin/magento setup:static-content:deploy -f
+
+config and deloy on server
+cd devops/capistrano/
+eval $(ssh-agent)
+ssh-add
+cap staging deloy
+
+php bin/magento catalog:images:resize
+elsa speak
+duolingual
+
+

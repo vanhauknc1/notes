@@ -8,3 +8,10 @@ php bin/magento setup:upgrade
 php bin/magento setup:di:compile
 php bin/magento cache:flush
 php bin/magento setup:static-content:deploy
+
+config and deloy on server
+cd devops/capistrano/
+eval $(ssh-agent)
+ssh-add
+cap staging deloy
+
