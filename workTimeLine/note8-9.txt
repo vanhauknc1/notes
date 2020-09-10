@@ -1,0 +1,5 @@
+debug Form->Save in CustomerCatalogpemission 
+de tao form data ADDD  old data to database
+22222
+tao $model de add data vo table customer_catalog_restriction
+xong foreach de add

@@ -1,0 +1,218 @@
+<?php
+
+namespace Cminds\CustomerCatalogPermission\Controller\Adminhtml\Form;
+
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\View\Result\PageFactory;
+use Cminds\CustomerCatalogPermission\Helper\Data as Helper;
+use Cminds\CustomerCatalogPermission\Model\Restriction;
+use Cminds\CustomerCatalogPermission\Model\RestrictionFactory;
+use Cminds\CustomerCatalogPermission\Model\RestrictionRepository;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\App\Request\DataPersistorInterface;
+use mysql_xdevapi\Exception;
+
+
+class Save extends Action
+{
+    /** @var PageFactory $resultPageFactory */
+    protected $resultPageFactory;
+    /** @var RestrictionFactory $restrictionFactory */
+    protected $restrictionFactory;
+    /** @var RestrictionRepository $restrictionRepository */
+    protected $restrictionRepository;
+    /** @var Helper $helper */
+    protected $helper;
+    /** @var DataPersistorInterface $dataPersistor */
+    protected $dataPersistor;
+
+    /**
+     * Save constructor.
+     * @param Context $context
+     * @param PageFactory $resultPageFactory
+     * @param Helper $helper
+     * @param RestrictionFactory $restrictionFactory
+     * @param RestrictionRepository $restrictionRepository
+     * @param DataPersistorInterface $dataPersistor
+     */
+    public function __construct(
+        Context $context,
+        PageFactory $resultPageFactory,
+        Helper $helper,
+        RestrictionFactory $restrictionFactory,
+        RestrictionRepository $restrictionRepository,
+        DataPersistorInterface $dataPersistor
+    ) {
+        parent::__construct($context);
+        $this->resultPageFactory = $resultPageFactory;
+        $this->helper = $helper;
+        $this->restrictionFactory = $restrictionFactory;
+        $this->restrictionRepository = $restrictionRepository;
+        $this->dataPersistor = $dataPersistor;
+    }
+
+    /**
+     * Index action
+     *
+     * @return ResultInterface
+     */
+    public function execute()
+    {
+
+        $fx ="/shared/httpd/m2haver/htdocs/pub/media/mage191cms_page.csv";
+        $arrayIdCustomer = array();
+        $arrayPageAll = array();
+        $file = $fx;
+               $handle = fopen($file, "r");
+               if (empty($handle) === false) {
+ 
+               while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                      
+                      array_push($arrayIdCustomer,$data[0]);
+                      if($data[3] != ""){
+                             array_push($arrayPageAll,$data[3]);
+                      }
+                      
+                      
+                      }
+ 
+               
+               }
+               $arrayList = array();
+               
+               foreach ($arrayIdCustomer as $idCustomer) {
+                      $arrayPage = array();
+                      $k=0;
+                      $handle = fopen($file, "r");
+                      while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                             $spl = explode(',',$data[2]);
+                             
+                             foreach ($spl as $var) {
+                                    $k=$k+1;
+                                    if($k===1){
+                                           array_push($arrayPage,$idCustomer);
+                                    }
+                                    if($var === $idCustomer){
+                                          
+                                           //$arrayx = array($idCustomer  => $data[1]);
+                                           array_push($arrayPage,$data[1]);          
+                                          // echo $idCustomer ."-----".$data[1] ."<br>";
+                                    }
+                             }
+                             
+                             
+                            
+                             
+                      }
+                      array_push($arrayList,$arrayPage);
+                    
+               }
+ 
+               //var_dump($arrayPageAll);
+             
+           //    var_dump(implode(" ",$arrayOrigin));
+ 
+               fclose($handle);
+
+        for($i=0;$i<count($arrayList);$i++){
+            $check = count($arrayList[$i]) ;
+            
+                   if($check > 1){
+                          $idCustom = $arrayList[$i][0];
+                          array_splice($arrayList[$i],0,1);
+
+                          $arrayTemp = array_diff($arrayPageAll,$arrayList[$i]);
+                          $stringParent = "";
+                                 foreach ($arrayTemp as $key => $value) {
+                                        $items = '"'.$value.'":"'.$value.'"';
+                                        $stringParent = $stringParent .$items.',';
+                                 }
+                                 $stringParent=substr($stringParent,0,-1);
+                                 $stringParent = '{'.$stringParent.'}';
+                                 $xId = '"'.$idCustom.'":"'.$idCustom.'"';
+                                 $idCustom = '{'.$xId.'}';
+                        
+                      
+                                 $resultRedirect = $this->resultRedirectFactory->create();
+                                 $data = $this->getRequest()->getParams();
+                                                 $data["redirect"]="resource-directory-error";
+                                                   $data["code"]="customer_cms_page";
+                                                   $data["type"]="customer";
+                                                   $data["is_active"]="1";
+                                                   $data["message"]="PERMISSION DENIED";
+                                                   $data["restriction_customer"]=$idCustom;
+                                                   $data["restriction_pages"]= $stringParent;
+                                                   $model = $this->restrictionFactory->create();
+                                                   $model->setData($data);
+                                    $this->restrictionRepository->save($model);   
+                                   
+            
+     }
+    }
+        exit();
+        $resultRedirect = $this->resultRedirectFactory->create();
+       $data = $this->getRequest()->getParams();     
+        if ($data) {
+            $id = $this->getRequest()->getParam('entity_id');
+            
+            try {
+                if (isset($data['restriction_customer']) && $data['restriction_customer'] == '{}') {
+                    throw new LocalizedException(__('Please, select user for restriction'));
+                }
+                /** @var Restriction $model */
+                $model = $this->restrictionFactory->create();
+
+                if ($id) {
+                    try {
+                        $model = $this->restrictionRepository->getById($id);
+                    } catch (LocalizedException $e) {
+                        $this->messageManager->addErrorMessage(__('This restriction no longer exists.'));
+                        return $resultRedirect->setPath('*/*/');
+                    }
+                }
+                $model->setData($data);
+                $this->restrictionRepository->save($model);
+
+                $this->messageManager->addSuccessMessage(__('You saved the restriction.'));
+                $this->dataPersistor->clear('restriction');
+                return $this->processReturn($model, $data, $resultRedirect);
+            } catch (LocalizedException $e) {
+                $this->messageManager->addErrorMessage($e->getMessage());
+            } catch (\Exception $e) {
+                $this->messageManager->addExceptionMessage($e,
+                    __('Something went wrong while saving the restriction.'));
+            }
+
+            $this->dataPersistor->set('restriction', $data);
+            return $resultRedirect->setPath('*/*/edit', ['entity_id' => $id]);
+        }
+        return $resultRedirect->setPath('*/*/');
+    }
+
+    /**
+     * Process and set the block return
+     *
+     * @param Restriction $model
+     * @param array $data
+     * @param ResultInterface $resultRedirect
+     * @return ResultInterface
+     */
+    private function processReturn($model, $data, $resultRedirect)
+    {
+        $redirect = $data['back'] ?? 'close';
+
+        if ($redirect ==='continue' || $redirect === 'edit') {
+            $restrictionType = $data['restriction-type'] ?? $model->getCode();
+
+            $resultRedirect->setPath('*/*/edit', [
+                'entity_id' => $model->getId(),
+                'restriction-type' => $restrictionType
+            ]);
+        } else if ($redirect === 'close') {
+            $resultRedirect->setPath('*/index/index');
+        }
+        return $resultRedirect;
+    }
+}
