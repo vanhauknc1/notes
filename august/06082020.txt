@@ -44,17 +44,22 @@ https://i.imgur.com/VCLEX4Z.png
  mysql -h mysql -u root -p m2haver_dev < cleanhaversho_b2bparts-08-13-2020-023326.sql
  * uninstall magento 
  bin/magento setup:uninstall
+* export database
+mysqldump -u m2haver_dev -p m2haver_dev > ./backup_m2haver.sql
  
- 
+bin/magento setup:backup --db
+
  
 scp -r m2havertest:home/m2haver/backups/cleanhaversho_b2bparts-08-13-2020-023326.sql .
 rsync -avzh m2havertest:/home/m2haver/backups/cleanhaversho_b2bparts-08-13-2020-023326.sql .
 
 server to local
 rsync -avzh shop.haverusa.com:/home/havershop/shop.haverusa.com/shared/htdocs/media/resources .
-rsync -avzh m2havertest:/home/m2haver/m2haver.variux.com/shared/htdocs/pub/media .
+rsync -avzh m2havertest:/home/m2haver/m2haver.variux.com/releases/20200911050339/htdocs .
 local to serve
 rsync -avzhe ssh media m2havertest:/home/m2haver/m2haver.variux.com/releases/20200821043606/htdocs/pub
+rsync -avzh --exclude 'catalog' indmar:/home/indmar/indmar.variux.com/shared/htdocs/pub/media .
+
 
 bin/magento migrate:settings -a app/code/Vendor/Migration/etc/opensource-to-opensource/1.9.4.4/config.xml
 bin/magento migrate:data -a app/code/Vendor/Migration/etc/opensource-to-opensource/1.9.4.4/config.xml
@@ -72,6 +77,9 @@ php bin/magento setup:upgrade
 php bin/magento setup:di:compile
 php bin/magento cache:flush
 php bin/magento setup:static-content:deploy -f
+
+deloy us
+php bin/magento s:s:d -f en_US
 
 config and deloy on server
 cd devops/capistrano/
