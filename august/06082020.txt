@@ -4,7 +4,7 @@ docker-compose down
 docker exec -it devilbox_php_1 bash
 
 sudo rm -rf m2haver
-
+rm -rf btg-mage-enterprise
 sudo php bin/magento setup:install --base-url=https://m2haver.localip.dev/ \
 --db-host=127.0.0.1 --db-name=m2haver_dev --db-user=root --db-password=1 \
 --admin-firstname=Magento --admin-lastname=User --admin-email=user@example.com \
@@ -38,7 +38,8 @@ sudo php bin/magento setup:install --base-url=https://test.localip.dev/ \
 
 https://i.imgur.com/VCLEX4Z.png
 
-
+git remove file
+git clean -fd
 
 * import database 
  mysql -h mysql -u root -p m2haver_dev < cleanhaversho_b2bparts-08-13-2020-023326.sql
@@ -46,7 +47,8 @@ https://i.imgur.com/VCLEX4Z.png
  bin/magento setup:uninstall
 * export database
 mysqldump -u m2haver_dev -p m2haver_dev > ./backup_m2haver.sql
- 
+
+mysqldump -hmysql -uroot -p1 mgt_blank > mgt_blank2.sql
 bin/magento setup:backup --db
 
  
@@ -78,6 +80,9 @@ php bin/magento setup:di:compile
 php bin/magento cache:flush
 php bin/magento setup:static-content:deploy -f
 
+allin
+php bin/magento se:up && php bin/magento s:d:c && php bin/magento s:s:d -f -j16
+
 deloy us
 php bin/magento s:s:d -f en_US
 
@@ -86,6 +91,7 @@ cd devops/capistrano/
 eval $(ssh-agent)
 ssh-add
 cap staging deploy
+cap precse deploy
 
 php bin/magento catalog:images:resize
 elsa speak
@@ -96,3 +102,8 @@ bin/magento setup:backup --db
 php -d memory_limit=2G bin/magento setup:static-content:deploy -f
 
 php -d memory_limit=4G bin/magento catalog:images:resize
+composer install --no-dev
+composer require 
+
+get qty in phtml ()
+<?php var_dump($_product->getExtensionAttributes()->getStockItem()->getQty()); exit();?>
